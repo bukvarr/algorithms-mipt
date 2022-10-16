@@ -25,31 +25,22 @@
 
 #include <string>
 
-struct Context {
-    int left_index, right_index;
-    int first_minimum, last_minimum;
-    int queue[200'000], minimums_array[200'000];
+struct Hat {
+    int left_index = 0, right_index = 0;
+    int first_minimum = 0, last_minimum = 0;
+    int queue[200'000] = {};
+		int minimums_array[200'000] = {};
     int current_iq, popped_iq;
 };
 
-void FirstInitialization(Context* queue_p) {
-  queue_p->left_index = 0;
-  queue_p->right_index = 0;
-  queue_p->first_minimum = queue_p->last_minimum = 0;
-  queue_p->current_iq = queue_p->popped_iq = 0;
-  for (int i = 0; i < 200'000; ++i) {
-    queue_p->minimums_array[i] = 0;
-  }
-}
-
-void PushBack(Context* queue_p) {
+void PushBack(Hat* queue_p) {
   int index = queue_p->right_index % 200'000;
   queue_p->queue[index] = queue_p->current_iq;
   ++queue_p->right_index;
   std::cout << "ok" << std::endl;
 }
 
-int PopFront(Context* queue_p) {
+int PopFront(Hat* queue_p) {
   if (queue_p->right_index == queue_p->left_index) {
     std::cout << "error" << std::endl;
     return 0;
@@ -60,7 +51,7 @@ int PopFront(Context* queue_p) {
   return queue_p->queue[index];
 }
 
-void OutputFront(Context* queue_p) {
+void OutputFront(Hat* queue_p) {
   if (queue_p->right_index == queue_p->left_index) {
     std::cout << "error" << std::endl;
     return;
@@ -69,13 +60,13 @@ void OutputFront(Context* queue_p) {
   std::cout << queue_p->queue[index] << std::endl;
 }
 
-void Clear(Context* queue_p) {
+void Clear(Hat* queue_p) {
   queue_p->left_index = queue_p->right_index = 0;
   queue_p->first_minimum = queue_p->last_minimum = 0;
   std::cout << "ok" << std::endl;
 }
 
-void AddToMinimums(Context* queue_p) {
+void AddToMinimums(Hat* queue_p) {
   if (queue_p->right_index == queue_p->left_index + 1) {
     queue_p->minimums_array[queue_p->last_minimum] = queue_p->current_iq;
     return;
@@ -90,7 +81,7 @@ void AddToMinimums(Context* queue_p) {
           queue_p->current_iq;
 }
 
-void RemoveFromMinimums(Context* queue_p) {
+void RemoveFromMinimums(Hat* queue_p) {
   if (queue_p->minimums_array[queue_p->first_minimum % 200'000] ==
       queue_p->popped_iq) {
     if (queue_p->first_minimum != queue_p->last_minimum) {
@@ -99,7 +90,7 @@ void RemoveFromMinimums(Context* queue_p) {
   }
 }
 
-void OutputMinimum(Context* queue_p) {
+void OutputMinimum(Hat* queue_p) {
   if (queue_p->right_index == queue_p->left_index) {
     std::cout << "error" << std::endl;
     return;
@@ -108,7 +99,7 @@ void OutputMinimum(Context* queue_p) {
             << std::endl;
 }
 
-void ProcessingRequest(Context* queue_p) {
+void ProcessingRequest(Hat* queue_p) {
   std::string s;
   std::cin >> s;
   if (s == "enqueue") {
@@ -138,8 +129,7 @@ void ProcessingRequest(Context* queue_p) {
 
 int main() {
   int m;
-  Context queue_p;
-  FirstInitialization(&queue_p);
+  Hat queue_p;
   std::cin >> m;
   for (int i = 0; i < m; ++i) {
     ProcessingRequest(&queue_p);
