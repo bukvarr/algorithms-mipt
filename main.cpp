@@ -17,100 +17,97 @@
 
 #include <iostream>
 
-class HeapTools {
-public:
-		std::pair<long long int, int> heap_array[100'000];
-		int requests_order[1'000'000];
-		int size;
-		void SiftDown(int index);
-		void SiftUp(int index);
-		void RequestProcessing();
-		void Insert(long long int x, int request_number);
-		void DecreaseKey();
-		void ExtractMin();
+class Heap {
+ private:
+  std::pair<long long, int> heap_array_[100'000];
+  int requests_order_[1'000'000];
+  int size_ = 0;
+
+  void SiftDown(int index) {
+    while (2 * index + 1 < size_) {
+      int u = 2 * index + 1;
+      if (u + 1 < size_ && heap_array_[u + 1].first < heap_array_[u].first) {
+        ++u;
+      }
+      if (heap_array_[u].first < heap_array_[index].first) {
+        std::swap(heap_array_[index], heap_array_[u]);
+        std::swap(requests_order_[heap_array_[index].second],
+                  requests_order_[heap_array_[u].second]);
+        index = u;
+      } else {
+        break;
+      }
+    }
+  }
+
+  void SiftUp(int index) {
+    while (index > 0) {
+      if (heap_array_[index] < heap_array_[(index - 1) / 2]) {
+        std::swap(heap_array_[index], heap_array_[(index - 1) / 2]);
+        std::swap(requests_order_[heap_array_[index].second],
+                  requests_order_[heap_array_[(index - 1) / 2].second]);
+        index = (index - 1) / 2;
+      } else {
+        break;
+      }
+    }
+  }
+
+ public:
+  void Insert(long long x, int request_number) {
+    requests_order_[request_number] = size_;
+    heap_array_[size_].first = x;
+    heap_array_[size_].second = request_number;
+    SiftUp(size_++);
+  }
+
+  long long GetMin() const { return heap_array_[0].first; }
+
+  void DecreaseKey() {
+    int request_number;
+    long long delta;
+    std::cin >> request_number >> delta;
+    int index = requests_order_[request_number];
+    heap_array_[index].first -= delta;
+    SiftUp(index);
+  }
+
+  void ExtractMin() {
+    std::swap(heap_array_[0], heap_array_[--size_]);
+    std::swap(requests_order_[heap_array_[0].second],
+              requests_order_[heap_array_[size_].second]);
+    SiftDown(0);
+  }
 };
 
-void HeapTools::SiftDown(int index) {
-	while (2 * index + 1 < size) {
-		int u = 2 * index + 1;
-		if (u + 1 < size && heap_array[u + 1].first < heap_array[u].first) {
-			++u;
-		}
-		if (heap_array[u].first < heap_array[index].first) {
-			std::swap(heap_array[index], heap_array[u]);
-			std::swap(requests_order[heap_array[index].second],
-			          requests_order[heap_array[u].second]);
-			index = u;
-		} else {
-			break;
-		}
-	}
-}
-
-void HeapTools::SiftUp(int index) {
-	while (index > 0) {
-		if (heap_array[index] < heap_array[(index - 1) / 2]) {
-			std::swap(heap_array[index], heap_array[(index - 1) / 2]);
-			std::swap(requests_order[heap_array[index].second],
-			          requests_order[heap_array[(index - 1) / 2].second]);
-			index = (index - 1) / 2;
-		} else {
-			break;
-		}
-	}
-}
-
-void HeapTools::Insert(long long int x, int request_number) {
-	requests_order[request_number] = size;
-	heap_array[size].first = x;
-	heap_array[size].second = request_number;
-	SiftUp(size++);
-}
-
-void HeapTools::DecreaseKey() {
-	int request_number;
-	long long int delta;
-	std::cin >> request_number >> delta;
-	int index = requests_order[request_number];
-	heap_array[index].first -= delta;
-	SiftUp(index);
-}
-
-void HeapTools::ExtractMin() {
-	std::swap(heap_array[0], heap_array[--size]);
-	std::swap(requests_order[heap_array[0].second],
-	          requests_order[heap_array[size].second]);
-	SiftDown(0);
-}
-
-void HeapTools::RequestProcessing() {
-	int q;
-	std::cin >> q;
-	for (int i = 1; i <= q; ++i) {
-		std::string s;
-		std::cin >> s;
-		if (s == "insert") {
-			long long int x;
-			std::cin >> x;
-			Insert(x, i);
-		}
-		if (s == "getMin") {
-			std::cout << heap_array[0].first << std::endl;
-		}
-		if (s == "decreaseKey") {
-			DecreaseKey();
-		}
-		if (s == "extractMin") {
-			ExtractMin();
-		}
-	}
+void RequestProcessing(std::string s, int request_number, Heap& heap) {
+  if (s == "insert") {
+    long long x;
+    std::cin >> x;
+    heap.Insert(x, request_number);
+  }
+  if (s == "decreaseKey") {
+    heap.DecreaseKey();
+  }
+  if (s == "extractMin") {
+    heap.ExtractMin();
+  }
 }
 
 int main() {
-	HeapTools heap;
-	heap.size = 0;
-	std::ios_base::sync_with_stdio(false);
-	std::basic_ostream<char, std::char_traits<char> >* aboba = 0;
-	std::cin.tie(aboba);
-	heap.RequestProcessing();
+  Heap heap;
+  std::ios_base::sync_with_stdio(false);
+  std::basic_ostream<char, std::char_traits<char> >* aboba = 0;
+  std::cin.tie(aboba);
+  int q;
+  std::cin >> q;
+  for (int i = 1; i <= q; ++i) {
+    std::string s;
+    std::cin >> s;
+    if (s != "getMin") {
+      RequestProcessing(s, i, heap);
+    } else {
+      std::cout << heap.GetMin() << '\n';
+    }
+  }
 }
