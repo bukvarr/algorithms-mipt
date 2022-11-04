@@ -14,7 +14,7 @@
 
     get_max — программа должна вывести значение миаксимального элемента, не удаляя его из структуры.
 
-    size — программа должна вывести количество элементов в структуре.
+    size_ — программа должна вывести количество элементов в структуре.
 
     clear — Программа должна очистить структуру и вывести ok.
 
@@ -27,200 +27,200 @@
 
 #include <iostream>
 
-class HeapTools {
-public:
-		std::pair<int, int> max_heap[200'000];
-		std::pair<int, int> min_heap[200'000];
-		int requests_order_min[200'000];
-		int requests_order_max[200'000];
-		int size;
-		void SiftDownMin(int index);
-		void SiftDownMax(int index);
-		void SiftUpMin(int index);
-		void SiftUpMax(int index);
-		void Insert(int request_number);
-		void ExtractMin();
-		void ExtractMax();
-		void RequestProcessing();
-		void GetMin();
-		void GetMax();
-		void Clear();
+class Heap {
+ private:
+  std::pair<int, int> max_heap_[200'000];
+  std::pair<int, int> min_heap_[200'000];
+  int* requests_order_min_;
+  int* requests_order_max_;
+  int size_ = 0;
+
+  void SiftDownMin(int index) {
+    while (2 * index + 1 < size_) {
+      int u = 2 * index + 1;
+      if (u + 1 < size_ && min_heap_[u + 1].first < min_heap_[u].first) {
+        ++u;
+      }
+      if (min_heap_[u].first < min_heap_[index].first) {
+        std::swap(min_heap_[index], min_heap_[u]);
+        std::swap(requests_order_min_[min_heap_[index].second],
+                  requests_order_min_[min_heap_[u].second]);
+        index = u;
+      } else {
+        break;
+      }
+    }
+  }
+
+  void SiftDownMax(int index) {
+    while (2 * index + 1 < size_) {
+      int u = 2 * index + 1;
+      if (u + 1 < size_ && max_heap_[u + 1].first > max_heap_[u].first) {
+        ++u;
+      }
+      if (max_heap_[u].first > max_heap_[index].first) {
+        std::swap(max_heap_[index], max_heap_[u]);
+        std::swap(requests_order_max_[max_heap_[index].second],
+                  requests_order_max_[max_heap_[u].second]);
+        index = u;
+      } else {
+        break;
+      }
+    }
+  }
+
+  void SiftUpMin(int index) {
+    while (index > 0) {
+      if (min_heap_[index].first < min_heap_[(index - 1) / 2].first) {
+        std::swap(min_heap_[index], min_heap_[(index - 1) / 2]);
+        std::swap(requests_order_min_[min_heap_[index].second],
+                  requests_order_min_[min_heap_[(index - 1) / 2].second]);
+        index = (index - 1) / 2;
+      } else {
+        break;
+      }
+    }
+  }
+
+  void SiftUpMax(int index) {
+    while (index > 0) {
+      if (max_heap_[index].first > max_heap_[(index - 1) / 2].first) {
+        std::swap(max_heap_[index], max_heap_[(index - 1) / 2]);
+        std::swap(requests_order_max_[max_heap_[index].second],
+                  requests_order_max_[max_heap_[(index - 1) / 2].second]);
+        index = (index - 1) / 2;
+      } else {
+        break;
+      }
+    }
+  }
+
+ public:
+  Heap(int size)
+      : requests_order_min_(new int[size]),
+        requests_order_max_(new int[size]){};
+
+  std::string Size() { return std::to_string(size_); }
+
+  std::string Insert(int request_number, int value) {
+    int index = size_;
+    ++size_;
+    requests_order_min_[request_number] = index;
+    requests_order_max_[request_number] = index;
+    min_heap_[index].first = value;
+    min_heap_[index].second = request_number;
+    max_heap_[index].first = value;
+    max_heap_[index].second = request_number;
+    SiftUpMin(index);
+    SiftUpMax(index);
+    return "ok";
+  }
+
+  std::string ExtractMin() {
+    if (size_ == 0) {
+      return "error";
+    }
+    std::string out = std::to_string(min_heap_[0].first);
+    int index = requests_order_max_[min_heap_[0].second];
+    --size_;
+    if (index != size_) {
+      std::swap(max_heap_[index], max_heap_[size_]);
+      std::swap(requests_order_max_[max_heap_[index].second],
+                requests_order_max_[max_heap_[size_].second]);
+      SiftDownMax(index);
+      SiftUpMax(index);
+    }
+    std::swap(min_heap_[0], min_heap_[size_]);
+    std::swap(requests_order_min_[min_heap_[0].second],
+              requests_order_min_[min_heap_[size_].second]);
+    SiftDownMin(0);
+    return out;
+  }
+
+  std::string ExtractMax() {
+    if (size_ == 0) {
+      return "error";
+    }
+    std::string out = std::to_string(max_heap_[0].first);
+    int index = requests_order_min_[max_heap_[0].second];
+    --size_;
+    if (index != size_) {
+      std::swap(min_heap_[index], min_heap_[size_]);
+      std::swap(requests_order_min_[min_heap_[index].second],
+                requests_order_min_[min_heap_[size_].second]);
+      SiftDownMin(index);
+      SiftUpMin(index);
+    }
+    std::swap(max_heap_[0], max_heap_[size_]);
+    std::swap(requests_order_max_[max_heap_[0].second],
+              requests_order_max_[max_heap_[size_].second]);
+    SiftDownMax(0);
+    return out;
+  }
+
+  std::string GetMin() {
+    if (size_ == 0) {
+      return "error";
+    }
+    return std::to_string(min_heap_[0].first);
+  }
+
+  std::string GetMax() {
+    if (size_ == 0) {
+      return "error";
+    }
+    return std::to_string(max_heap_[0].first);
+  }
+
+  std::string Clear() {
+    size_ = 0;
+    return "ok";
+  }
+
+  ~Heap() {
+    delete[] requests_order_min_;
+    delete[] requests_order_max_;
+  }
 };
 
-void HeapTools::SiftDownMin(int index) {
-	while (2 * index + 1 < size) {
-		int u = 2 * index + 1;
-		if (u + 1 < size && min_heap[u + 1].first < min_heap[u].first) {
-			++u;
-		}
-		if (min_heap[u].first < min_heap[index].first) {
-			std::swap(min_heap[index], min_heap[u]);
-			std::swap(requests_order_min[min_heap[index].second],
-			          requests_order_min[min_heap[u].second]);
-			index = u;
-		} else {
-			break;
-		}
-	}
-}
-
-void HeapTools::SiftDownMax(int index) {
-	while (2 * index + 1 < size) {
-		int u = 2 * index + 1;
-		if (u + 1 < size && max_heap[u + 1].first > max_heap[u].first) {
-			++u;
-		}
-		if (max_heap[u].first > max_heap[index].first) {
-			std::swap(max_heap[index], max_heap[u]);
-			std::swap(requests_order_max[max_heap[index].second],
-			          requests_order_max[max_heap[u].second]);
-			index = u;
-		} else {
-			break;
-		}
-	}
-}
-
-void HeapTools::SiftUpMin(int index) {
-	while (index > 0) {
-		if (min_heap[index].first < min_heap[(index - 1) / 2].first) {
-			std::swap(min_heap[index], min_heap[(index - 1) / 2]);
-			std::swap(requests_order_min[min_heap[index].second],
-			          requests_order_min[min_heap[(index - 1) / 2].second]);
-			index = (index - 1) / 2;
-		} else {
-			break;
-		}
-	}
-}
-
-void HeapTools::SiftUpMax(int index) {
-	while (index > 0) {
-		if (max_heap[index].first > max_heap[(index - 1) / 2].first) {
-			std::swap(max_heap[index], max_heap[(index - 1) / 2]);
-			std::swap(requests_order_max[max_heap[index].second],
-			          requests_order_max[max_heap[(index - 1) / 2].second]);
-			index = (index - 1) / 2;
-		} else {
-			break;
-		}
-	}
-}
-
-void HeapTools::Insert(int request_number) {
-	int x;
-	std::cin >> x;
-	int index = size;
-	++size;
-	requests_order_min[request_number] = index;
-	requests_order_max[request_number] = index;
-	min_heap[index].first = x;
-	min_heap[index].second = request_number;
-	max_heap[index].first = x;
-	max_heap[index].second = request_number;
-	SiftUpMin(index);
-	SiftUpMax(index);
-	std::cout << "ok" << std::endl;
-}
-
-void HeapTools::ExtractMin() {
-	if (size == 0) {
-		std::cout << "error" << std::endl;
-		return;
-	}
-	std::cout << min_heap[0].first << std::endl;
-	int index = requests_order_max[min_heap[0].second];
-	--size;
-	if (index != size) {
-		std::swap(max_heap[index], max_heap[size]);
-		std::swap(requests_order_max[max_heap[index].second],
-		          requests_order_max[max_heap[size].second]);
-		SiftDownMax(index);
-		SiftUpMax(index);
-	}
-	std::swap(min_heap[0], min_heap[size]);
-	std::swap(requests_order_min[min_heap[0].second],
-	          requests_order_min[min_heap[size].second]);
-	SiftDownMin(0);
-}
-
-void HeapTools::ExtractMax() {
-	if (size == 0) {
-		std::cout << "error" << std::endl;
-		return;
-	}
-	std::cout << max_heap[0].first << std::endl;
-	int index = requests_order_min[max_heap[0].second];
-	--size;
-	if (index != size) {
-		std::swap(min_heap[index], min_heap[size]);
-		std::swap(requests_order_min[min_heap[index].second],
-		          requests_order_min[min_heap[size].second]);
-		SiftDownMin(index);
-		SiftUpMin(index);
-	}
-	std::swap(max_heap[0], max_heap[size]);
-	std::swap(requests_order_max[max_heap[0].second],
-	          requests_order_max[max_heap[size].second]);
-	SiftDownMax(0);
-}
-
-void HeapTools::GetMin() {
-	if (size == 0) {
-		std::cout << "error" << std::endl;
-		return;
-	}
-	std::cout << min_heap[0].first << std::endl;
-}
-
-void HeapTools::GetMax() {
-	if (size == 0) {
-		std::cout << "error" << std::endl;
-		return;
-	}
-	std::cout << max_heap[0].first << std::endl;
-}
-
-void HeapTools::Clear() {
-	size = 0;
-	std::cout << "ok" << std::endl;
-}
-
-void HeapTools::RequestProcessing() {
-	int q;
-	std::cin >> q;
-	for (int i = 1; i <= q; ++i) {
-		std::string s;
-		std::cin >> s;
-		if (s == "insert") {
-			Insert(i);
-		}
-		if (s == "get_min") {
-			GetMin();
-		}
-		if (s == "get_max") {
-			GetMax();
-		}
-		if (s == "extract_min") {
-			ExtractMin();
-		}
-		if (s == "extract_max") {
-			ExtractMax();
-		}
-		if (s == "size") {
-			std::cout << size << std::endl;
-		}
-		if (s == "clear") {
-			Clear();
-		}
-	}
+std::string RequestProcessing(Heap& heap, const std::string& s) {
+  if (s == "get_min") {
+    return heap.GetMin();
+  }
+  if (s == "get_max") {
+    return heap.GetMax();
+  }
+  if (s == "extract_min") {
+    return heap.ExtractMin();
+  }
+  if (s == "extract_max") {
+    return heap.ExtractMax();
+  }
+  if (s == "size") {
+    return heap.Size();
+  }
+  if (s == "clear") {
+    return heap.Clear();
+  }
+  return "error";
 }
 
 int main() {
-	HeapTools heap;
-	heap.size = 0;
-	std::ios_base::sync_with_stdio(false); //speeding up cin
-	std::basic_ostream<char, std::char_traits<char> >* aboba = 0; //speeding up cin
-	std::cin.tie(aboba); //speeding up cin
-	heap.RequestProcessing();
+  std::ios_base::sync_with_stdio(false);
+  std::basic_ostream<char, std::char_traits<char> >* aboba = 0;
+  std::cin.tie(aboba);
+  int q;
+  std::cin >> q;
+  Heap heap(q);
+  for (int i = 0; i < q; ++i) {
+    std::string s;
+    std::cin >> s;
+    if (s == "insert") {
+      int value;
+      std::cin >> value;
+      std::cout << heap.Insert(i, value) << '\n';
+    } else {
+      std::cout << RequestProcessing(heap, s) << '\n';
+    }
+  }
 }
