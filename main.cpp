@@ -7,9 +7,9 @@
 class BigNumbersArray {
  private:
   int size_;
-  unsigned long long *numbers_;
-  unsigned long long *sorted_numbers_;
-  unsigned long long *bytes_array_;
+  unsigned long long* numbers_;
+  unsigned long long* sorted_numbers_;
+  unsigned long long* bytes_array_;
 
   void ByteSorting(const int& byte) {
     int counting_array[256] = {};
@@ -28,16 +28,17 @@ class BigNumbersArray {
     }
   }
 
-  unsigned long long FindByte(unsigned long long num,
-                                               const int& byte) {
+  unsigned long long FindByte(unsigned long long num, const int& byte) {
     num = num >> (byte << 3);
     return num % 256;
   }
 
  public:
-  BigNumbersArray(int size) : size_(size), numbers_(new unsigned long long[size_]),
-                              sorted_numbers_(new unsigned long long[size_]),
-                              bytes_array_(new unsigned long long[size_]){};
+  BigNumbersArray(int size)
+      : size_(size),
+        numbers_(new unsigned long long[size_]),
+        sorted_numbers_(new unsigned long long[size_]),
+        bytes_array_(new unsigned long long[size_]){};
 
   void Sort() {
     for (int i = 0; i < 8; ++i) {
@@ -49,9 +50,7 @@ class BigNumbersArray {
     numbers_[index] = t;
   }
 
-  unsigned long long GiveNumber(int index) {
-    return sorted_numbers_[index];
-  }
+  unsigned long long GiveNumber(int index) { return sorted_numbers_[index]; }
 
   ~BigNumbersArray() {
     delete[] numbers_;
@@ -61,9 +60,9 @@ class BigNumbersArray {
 };
 
 int main() {
-  std::ios_base::sync_with_stdio(false); //speeding up cin
-  std::basic_ostream<char, std::char_traits<char> >* aboba = 0; //speeding up cin
-  std::cin.tie(aboba); //speeding up cin
+  std::ios_base::sync_with_stdio(false);
+  std::basic_ostream<char, std::char_traits<char> >* aboba = 0;
+  std::cin.tie(aboba);
   int size;
   std::cin >> size;
   BigNumbersArray array(size);
