@@ -4,60 +4,39 @@
 
 #include <iostream>
 
-class BigNumbersArray {
- private:
-  int size_;
-  unsigned long long* numbers_;
-  unsigned long long* sorted_numbers_;
-  unsigned long long* bytes_array_;
+unsigned long long FindByte(unsigned long long num, const int& byte) {
+  num = num >> (byte << 3);
+  return num % 256;
+}
 
-  void ByteSorting(const int& byte) {
-    int counting_array[256] = {};
-    for (int i = 0; i < size_; ++i) {
-      bytes_array_[i] = FindByte(numbers_[i], byte);
-      ++counting_array[bytes_array_[i]];
-    }
-    for (int i = 1; i < 256; ++i) {
-      counting_array[i] += counting_array[i - 1];
-    }
-    for (int i = size_ - 1; i >= 0; --i) {
-      sorted_numbers_[--counting_array[bytes_array_[i]]] = numbers_[i];
-    }
-    for (int i = 0; i < size_; ++i) {
-      numbers_[i] = sorted_numbers_[i];
-    }
+void ByteSorting(const int& byte, int size, unsigned long long* numbers,
+                 unsigned long long* sorted_numbers,
+                 unsigned long long* bytes_array) {
+  int counting_array[256] = {};
+  for (int i = 0; i < size; ++i) {
+    bytes_array[i] = FindByte(numbers[i], byte);
+    ++counting_array[bytes_array[i]];
   }
-
-  unsigned long long FindByte(unsigned long long num, const int& byte) {
-    num = num >> (byte << 3);
-    return num % 256;
+  for (int i = 1; i < 256; ++i) {
+    counting_array[i] += counting_array[i - 1];
   }
-
- public:
-  BigNumbersArray(int size)
-      : size_(size),
-        numbers_(new unsigned long long[size_]),
-        sorted_numbers_(new unsigned long long[size_]),
-        bytes_array_(new unsigned long long[size_]){};
-
-  void Sort() {
-    for (int i = 0; i < 8; ++i) {
-      ByteSorting(i);
-    }
+  for (int i = size - 1; i >= 0; --i) {
+    sorted_numbers[--counting_array[bytes_array[i]]] = numbers[i];
   }
-
-  void ArrayConstricting(unsigned long long t, int index) {
-    numbers_[index] = t;
+  for (int i = 0; i < size; ++i) {
+    numbers[i] = sorted_numbers[i];
   }
+}
 
-  unsigned long long GiveNumber(int index) { return sorted_numbers_[index]; }
-
-  ~BigNumbersArray() {
-    delete[] numbers_;
-    delete[] sorted_numbers_;
-    delete[] bytes_array_;
+void Sort(int size, unsigned long long* numbers) {
+  unsigned long long* sorted_numbers = new unsigned long long[size];
+  unsigned long long* bytes_array = new unsigned long long[size];
+  for (int i = 0; i < 8; ++i) {
+    ByteSorting(i, size, numbers, sorted_numbers, bytes_array);
   }
-};
+  delete[] sorted_numbers;
+  delete[] bytes_array;
+}
 
 int main() {
   std::ios_base::sync_with_stdio(false);
@@ -65,14 +44,15 @@ int main() {
   std::cin.tie(aboba);
   int size;
   std::cin >> size;
-  BigNumbersArray array(size);
+  unsigned long long* numbers = new unsigned long long[size];
   for (int i = 0; i < size; ++i) {
     unsigned long long t;
     std::cin >> t;
-    array.ArrayConstricting(t, i);
+    numbers[i] = t;
   }
-  array.Sort();
+  Sort(size, numbers);
   for (int i = 0; i < size; ++i) {
-    std::cout << array.GiveNumber(i) << '\n';
+    std::cout << numbers[i] << '\n';
   }
+  delete[] numbers;
 }
