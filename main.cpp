@@ -1,21 +1,26 @@
 #include <iostream>
 
+struct Node {
+    long long value;
+    int request_number;
+};
+
 class Heap {
  private:
-  std::pair<long long, int> heap_array_[100'000];
+  Node heap_array_[100'000];
   int* requests_order_;
   int size_ = 0;
 
   void SiftDown(int index) {
     while (2 * index + 1 < size_) {
       int u = 2 * index + 1;
-      if (u + 1 < size_ && heap_array_[u + 1].first < heap_array_[u].first) {
+      if (u + 1 < size_ && heap_array_[u + 1].value < heap_array_[u].value) {
         ++u;
       }
-      if (heap_array_[u].first < heap_array_[index].first) {
+      if (heap_array_[u].value < heap_array_[index].value) {
         std::swap(heap_array_[index], heap_array_[u]);
-        std::swap(requests_order_[heap_array_[index].second],
-                  requests_order_[heap_array_[u].second]);
+        std::swap(requests_order_[heap_array_[index].request_number],
+                  requests_order_[heap_array_[u].request_number]);
         index = u;
       } else {
         break;
@@ -25,10 +30,10 @@ class Heap {
 
   void SiftUp(int index) {
     while (index > 0) {
-      if (heap_array_[index] < heap_array_[(index - 1) / 2]) {
+      if (heap_array_[index].value < heap_array_[(index - 1) / 2].value) {
         std::swap(heap_array_[index], heap_array_[(index - 1) / 2]);
-        std::swap(requests_order_[heap_array_[index].second],
-                  requests_order_[heap_array_[(index - 1) / 2].second]);
+        std::swap(requests_order_[heap_array_[index].request_number],
+                  requests_order_[heap_array_[(index - 1) / 2].request_number]);
         index = (index - 1) / 2;
       } else {
         break;
@@ -41,23 +46,23 @@ class Heap {
 
   void Insert(long long x, int request_number) {
     requests_order_[request_number] = size_;
-    heap_array_[size_].first = x;
-    heap_array_[size_].second = request_number;
+    heap_array_[size_].value = x;
+    heap_array_[size_].request_number = request_number;
     SiftUp(size_++);
   }
 
-  long long GetMin() const { return heap_array_[0].first; }
+  long long GetMin() const { return heap_array_[0].value; }
 
   void DecreaseKey(int request_number, long long delta) {
     int index = requests_order_[request_number];
-    heap_array_[index].first -= delta;
+    heap_array_[index].value -= delta;
     SiftUp(index);
   }
 
   void ExtractMin() {
     std::swap(heap_array_[0], heap_array_[--size_]);
-    std::swap(requests_order_[heap_array_[0].second],
-              requests_order_[heap_array_[size_].second]);
+    std::swap(requests_order_[heap_array_[0].request_number],
+              requests_order_[heap_array_[size_].request_number]);
     SiftDown(0);
   }
 
