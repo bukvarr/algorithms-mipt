@@ -27,24 +27,34 @@
 
 #include <iostream>
 
+struct Node {
+ public:
+  int value;
+  int request_number;
+};
+
 class Heap {
+  friend void Insert(int request_number, int value, Heap& max_heap,
+                     Heap& min_heap);
+  friend int ExtractMin(Heap& max_heap, Heap& min_heap);
+  friend int ExtractMax(Heap& max_heap, Heap& min_heap);
+  friend void Clear(Heap& max_heap, Heap& min_heap);
+
  private:
-  std::pair<int, int> max_heap_[200'000];
-  std::pair<int, int> min_heap_[200'000];
-  int* requests_order_min_;
-  int* requests_order_max_;
+  Node heap_array_[200'000];
+  int* requests_order_;
   int size_ = 0;
 
-  void SiftDownMin(int index) {
+  void SiftDown(int index) {
     while (2 * index + 1 < size_) {
       int u = 2 * index + 1;
-      if (u + 1 < size_ && min_heap_[u + 1].first < min_heap_[u].first) {
+      if (u + 1 < size_ && heap_array_[u + 1].value < heap_array_[u].value) {
         ++u;
       }
-      if (min_heap_[u].first < min_heap_[index].first) {
-        std::swap(min_heap_[index], min_heap_[u]);
-        std::swap(requests_order_min_[min_heap_[index].second],
-                  requests_order_min_[min_heap_[u].second]);
+      if (heap_array_[u].value < heap_array_[index].value) {
+        std::swap(heap_array_[index], heap_array_[u]);
+        std::swap(requests_order_[heap_array_[index].request_number],
+                  requests_order_[heap_array_[u].request_number]);
         index = u;
       } else {
         break;
@@ -52,42 +62,12 @@ class Heap {
     }
   }
 
-  void SiftDownMax(int index) {
-    while (2 * index + 1 < size_) {
-      int u = 2 * index + 1;
-      if (u + 1 < size_ && max_heap_[u + 1].first > max_heap_[u].first) {
-        ++u;
-      }
-      if (max_heap_[u].first > max_heap_[index].first) {
-        std::swap(max_heap_[index], max_heap_[u]);
-        std::swap(requests_order_max_[max_heap_[index].second],
-                  requests_order_max_[max_heap_[u].second]);
-        index = u;
-      } else {
-        break;
-      }
-    }
-  }
-
-  void SiftUpMin(int index) {
+  void SiftUp(int index) {
     while (index > 0) {
-      if (min_heap_[index].first < min_heap_[(index - 1) / 2].first) {
-        std::swap(min_heap_[index], min_heap_[(index - 1) / 2]);
-        std::swap(requests_order_min_[min_heap_[index].second],
-                  requests_order_min_[min_heap_[(index - 1) / 2].second]);
-        index = (index - 1) / 2;
-      } else {
-        break;
-      }
-    }
-  }
-
-  void SiftUpMax(int index) {
-    while (index > 0) {
-      if (max_heap_[index].first > max_heap_[(index - 1) / 2].first) {
-        std::swap(max_heap_[index], max_heap_[(index - 1) / 2]);
-        std::swap(requests_order_max_[max_heap_[index].second],
-                  requests_order_max_[max_heap_[(index - 1) / 2].second]);
+      if (heap_array_[index].value < heap_array_[(index - 1) / 2].value) {
+        std::swap(heap_array_[index], heap_array_[(index - 1) / 2]);
+        std::swap(requests_order_[heap_array_[index].request_number],
+                  requests_order_[heap_array_[(index - 1) / 2].request_number]);
         index = (index - 1) / 2;
       } else {
         break;
@@ -96,113 +76,100 @@ class Heap {
   }
 
  public:
-  Heap(int size)
-      : requests_order_min_(new int[size]),
-        requests_order_max_(new int[size]){};
+  Heap(int rq) : requests_order_(new int[rq]) {}
 
-  std::string Size() { return std::to_string(size_); }
-
-  std::string Insert(int request_number, int value) {
-    int index = size_;
-    ++size_;
-    requests_order_min_[request_number] = index;
-    requests_order_max_[request_number] = index;
-    min_heap_[index].first = value;
-    min_heap_[index].second = request_number;
-    max_heap_[index].first = value;
-    max_heap_[index].second = request_number;
-    SiftUpMin(index);
-    SiftUpMax(index);
-    return "ok";
+  void Insert(long long x, int request_number) {
+    requests_order_[request_number] = size_;
+    heap_array_[size_].value = x;
+    heap_array_[size_].request_number = request_number;
+    SiftUp(size_++);
   }
 
-  std::string ExtractMin() {
-    if (size_ == 0) {
-      return "error";
-    }
-    std::string out = std::to_string(min_heap_[0].first);
-    int index = requests_order_max_[min_heap_[0].second];
-    --size_;
-    if (index != size_) {
-      std::swap(max_heap_[index], max_heap_[size_]);
-      std::swap(requests_order_max_[max_heap_[index].second],
-                requests_order_max_[max_heap_[size_].second]);
-      SiftDownMax(index);
-      SiftUpMax(index);
-    }
-    std::swap(min_heap_[0], min_heap_[size_]);
-    std::swap(requests_order_min_[min_heap_[0].second],
-              requests_order_min_[min_heap_[size_].second]);
-    SiftDownMin(0);
-    return out;
+  long long GetMin() const { return heap_array_[0].value; }
+
+  void DecreaseKey(int request_number, long long delta) {
+    int index = requests_order_[request_number];
+    heap_array_[index].value -= delta;
+    SiftUp(index);
   }
 
-  std::string ExtractMax() {
-    if (size_ == 0) {
-      return "error";
-    }
-    std::string out = std::to_string(max_heap_[0].first);
-    int index = requests_order_min_[max_heap_[0].second];
-    --size_;
-    if (index != size_) {
-      std::swap(min_heap_[index], min_heap_[size_]);
-      std::swap(requests_order_min_[min_heap_[index].second],
-                requests_order_min_[min_heap_[size_].second]);
-      SiftDownMin(index);
-      SiftUpMin(index);
-    }
-    std::swap(max_heap_[0], max_heap_[size_]);
-    std::swap(requests_order_max_[max_heap_[0].second],
-              requests_order_max_[max_heap_[size_].second]);
-    SiftDownMax(0);
-    return out;
+  void ExtractMin() {
+    std::swap(heap_array_[0], heap_array_[--size_]);
+    std::swap(requests_order_[heap_array_[0].request_number],
+              requests_order_[heap_array_[size_].request_number]);
+    SiftDown(0);
   }
 
-  std::string GetMin() {
-    if (size_ == 0) {
-      return "error";
-    }
-    return std::to_string(min_heap_[0].first);
-  }
+  int Size() { return size_; }
 
-  std::string GetMax() {
-    if (size_ == 0) {
-      return "error";
-    }
-    return std::to_string(max_heap_[0].first);
-  }
-
-  std::string Clear() {
-    size_ = 0;
-    return "ok";
-  }
-
-  ~Heap() {
-    delete[] requests_order_min_;
-    delete[] requests_order_max_;
-  }
+  ~Heap() { delete[] requests_order_; }
 };
 
-std::string RequestProcessing(Heap& heap, const std::string& s) {
-  if (s == "get_min") {
-    return heap.GetMin();
+void Insert(int request_number, int value, Heap& max_heap, Heap& min_heap) {
+  int index = min_heap.size_;
+  ++min_heap.size_;
+  ++max_heap.size_;
+  min_heap.requests_order_[request_number] = index;
+  max_heap.requests_order_[request_number] = index;
+  min_heap.heap_array_[index].value = value;
+  min_heap.heap_array_[index].request_number = request_number;
+  max_heap.heap_array_[index].value = -value;
+  max_heap.heap_array_[index].request_number = request_number;
+  min_heap.SiftUp(index);
+  max_heap.SiftUp(index);
+}
+
+int ExtractMin(Heap& max_heap, Heap& min_heap) {
+  int min = min_heap.heap_array_[0].value;
+  int index = max_heap.requests_order_[min_heap.heap_array_[0].request_number];
+  --min_heap.size_;
+  --max_heap.size_;
+  int size = max_heap.size_;
+  if (index != size) {
+    std::swap(max_heap.heap_array_[index], max_heap.heap_array_[size]);
+    std::swap(
+            max_heap.requests_order_[max_heap.heap_array_[index].request_number],
+            max_heap.requests_order_[max_heap.heap_array_[size].request_number]);
+    max_heap.SiftDown(index);
+    max_heap.SiftUp(index);
   }
-  if (s == "get_max") {
-    return heap.GetMax();
+  std::swap(min_heap.heap_array_[0], min_heap.heap_array_[size]);
+  std::swap(
+          min_heap.requests_order_[min_heap.heap_array_[0].request_number],
+          min_heap.requests_order_[min_heap.heap_array_[size].request_number]);
+  min_heap.SiftDown(0);
+  return min;
+}
+
+int ExtractMax(Heap& max_heap, Heap& min_heap) {
+  int max = max_heap.heap_array_[0].value;
+  int index = min_heap.requests_order_[max_heap.heap_array_[0].request_number];
+  --min_heap.size_;
+  --max_heap.size_;
+  int size = max_heap.size_;
+  if (index != size) {
+    std::swap(min_heap.heap_array_[index], min_heap.heap_array_[size]);
+    std::swap(
+            min_heap.requests_order_[min_heap.heap_array_[index].request_number],
+            min_heap.requests_order_[min_heap.heap_array_[size].request_number]);
+    min_heap.SiftDown(index);
+    min_heap.SiftUp(index);
   }
-  if (s == "extract_min") {
-    return heap.ExtractMin();
-  }
-  if (s == "extract_max") {
-    return heap.ExtractMax();
-  }
-  if (s == "size") {
-    return heap.Size();
-  }
-  if (s == "clear") {
-    return heap.Clear();
-  }
-  return "error";
+  std::swap(max_heap.heap_array_[0], max_heap.heap_array_[size]);
+  std::swap(
+          max_heap.requests_order_[max_heap.heap_array_[0].request_number],
+          max_heap.requests_order_[max_heap.heap_array_[size].request_number]);
+  max_heap.SiftDown(0);
+  return -max;
+}
+
+int GetMin(const Heap& min_heap) { return min_heap.GetMin(); }
+
+int GetMax(const Heap& max_heap) { return -max_heap.GetMin(); }
+
+void Clear(Heap& max_heap, Heap& min_heap) {
+  min_heap.size_ = 0;
+  max_heap.size_ = 0;
 }
 
 int main() {
@@ -211,16 +178,46 @@ int main() {
   std::cin.tie(aboba);
   int q;
   std::cin >> q;
-  Heap heap(q);
+  Heap min_heap(q);
+  Heap max_heap(q);
   for (int i = 0; i < q; ++i) {
     std::string s;
     std::cin >> s;
     if (s == "insert") {
       int value;
       std::cin >> value;
-      std::cout << heap.Insert(i, value) << '\n';
-    } else {
-      std::cout << RequestProcessing(heap, s) << '\n';
+      Insert(i, value, max_heap, min_heap);
+      std::cout << "ok" << '\n';
+      continue;
+    }
+    if (s == "size") {
+      std::cout << min_heap.Size() << '\n';
+      continue;
+    }
+    if (s == "clear") {
+      Clear(min_heap, max_heap);
+      std::cout << "ok" << '\n';
+      continue;
+    }
+    if (min_heap.Size() == 0) {
+      std::cout << "error" << '\n';
+      continue;
+    }
+    if (s == "get_min") {
+      std::cout << GetMin(min_heap) << '\n';
+      continue;
+    }
+    if (s == "get_max") {
+      std::cout << GetMax(max_heap) << '\n';
+      continue;
+    }
+    if (s == "extract_min") {
+      std::cout << ExtractMin(max_heap, min_heap) << '\n';
+      continue;
+    }
+    if (s == "extract_max") {
+      std::cout << ExtractMax(max_heap, min_heap) << '\n';
+      continue;
     }
   }
 }
