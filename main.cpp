@@ -19,22 +19,6 @@ struct Node {
 };
 
 class AVLTree {
- private:
-  Node* root_;
-  void HeightUpdate(Node* p);
-
-  Node* LeftRotate(Node* p);
-
-  Node* RightRotate(Node* p);
-
-  Node* Balance(Node* p);
-
-  Node* Insert(Node* p, long long key);
-
-  bool Find(Node* p, long long key);
-
-  long long FindNearestGreaterKey(Node* p, long long key);
-
  public:
   AVLTree() : root_(nullptr) {}
 
@@ -47,6 +31,17 @@ class AVLTree {
   }
 
   ~AVLTree() { delete root_; }
+
+ private:
+  Node* root_;
+
+  void HeightUpdate(Node* p);
+  Node* LeftRotate(Node* p);
+  Node* RightRotate(Node* p);
+  Node* Balance(Node* p);
+  Node* Insert(Node* p, long long key);
+  bool Find(Node* p, long long key);
+  long long FindNearestGreaterKey(Node* p, long long key);
 };
 
 void AVLTree::HeightUpdate(Node* p) {
