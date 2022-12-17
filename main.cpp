@@ -21,28 +21,23 @@ struct Node {
 
 class SplayTree {
  public:
-  Node* root;
-
-  Node* LeftRotate(Node* y);
-
-  Node* RightRotate(Node* y);
-
-  Node* ZigZag(Node* x);
-
-  Node* ZigZig(Node* x);
-
-  Node* Zig(Node* x);
-
-  Node* Splay(Node* x);
-
- public:
-  SplayTree() : root(nullptr) {}
+  SplayTree() : root_(nullptr) {}
 
   void Insert(const std::string& key, const std::string& value);
 
   std::string ReturnKeyValue(const std::string& key);
 
-  ~SplayTree() { delete root; }
+  ~SplayTree() { delete root_; }
+
+ private:
+  Node* root_;
+
+  Node* LeftRotate(Node* y);
+  Node* RightRotate(Node* y);
+  Node* ZigZag(Node* x);
+  Node* ZigZig(Node* x);
+  Node* Zig(Node* x);
+  Node* Splay(Node* x);
 };
 
 Node* SplayTree::LeftRotate(Node* y) {
@@ -146,22 +141,22 @@ Node* SplayTree::Splay(Node* x) {
 
 void SplayTree::Insert(const std::string& key, const std::string& value) {
   Node* t = new Node(key, value);
-  if (root == nullptr) {
-    root = t;
+  if (root_ == nullptr) {
+    root_ = t;
     return;
   }
-  Node* current_node = root;
+  Node* current_node = root_;
   while (true) {
     t->parent = current_node;
     if (key == current_node->key) {
-      root = Splay(current_node);
+      root_ = Splay(current_node);
       return;
     }
     if (key < current_node->key) {
       if (current_node->left == nullptr) {
         t->is_left = true;
         current_node->left = t;
-        root = Splay(current_node->left);
+        root_ = Splay(current_node->left);
         return;
       }
       current_node = current_node->left;
@@ -169,7 +164,7 @@ void SplayTree::Insert(const std::string& key, const std::string& value) {
       if (current_node->right == nullptr) {
         t->is_left = false;
         current_node->right = t;
-        root = Splay(current_node->right);
+        root_ = Splay(current_node->right);
         return;
       }
       current_node = current_node->right;
@@ -178,13 +173,13 @@ void SplayTree::Insert(const std::string& key, const std::string& value) {
 }
 
 std::string SplayTree::ReturnKeyValue(const std::string& key) {
-  Node* current_node = root;
+  Node* current_node = root_;
   while (true) {
     if (current_node == nullptr) {
       return "";
     }
     if (current_node->key == key) {
-      root = Splay(current_node);
+      root_ = Splay(current_node);
       return current_node->value;
     }
     if (current_node->key > key) {
