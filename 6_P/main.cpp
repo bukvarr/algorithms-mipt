@@ -1,4 +1,16 @@
+/*В последних миссиях Балласы воспользовались неразберихой в Лос-Сантосе.
+ Cиджей готовится к обороне своего города. Его город представляет собой клетчатый прямоугольник размера n×m,
+ в котором каждая клетка — отдельный район. Балласы могут либо атаковать район, либо пощадить его.
+ При этом есть районы, в которых достаточно оборонительных сооружений до следующего конца света,
+ и балласы не в силах их захватить, а есть те, в которых никакой защиты нет, и им в любом случае придется капитулировать.
+
+Балласы все ещё справедливы, а это значит,
+ что в любом квадрате размера 2×2 должно быть поровну до зубов защищенных и безоружных районов.
+ Теперь балласы хотят узнать количество различных вариантов распределения районов города на безоружные и излишне защищенные.*/
+
 #include <iostream>
+
+#include <vector>
 
 const long long kMod = 1'000'000'007;
 
@@ -21,7 +33,8 @@ struct Row {
     bool IsUndef() const { return black_odd == -1 && white_odd == -1; }
 };
 
-void Initialization(Row* rows, Row* columns, int i, int j, char c) {
+void Initialization(std::vector<Row>& rows, std::vector<Row>& columns,
+                    int i, int j, char c) {
   if (c == '+') {
     if (rows[i].black_odd == -1 || rows[i].black_odd == j % 2) {
       rows[i].black_odd = j % 2;
@@ -54,7 +67,7 @@ void Initialization(Row* rows, Row* columns, int i, int j, char c) {
   }
 }
 
-bool AlterIsPossible(const Row* rows, int n) {
+bool AlterIsPossible(const std::vector<Row>& rows, int n) {
   int black_odd = -1;
   int white_odd = -1;
   for (int i = 0; i < n; ++i) {
@@ -86,14 +99,15 @@ bool AlterIsPossible(const Row* rows, int n) {
   return !(white_odd == black_odd && white_odd != -1);
 }
 
-long long Answer(int n, int m, const Row* rows, const Row* columns,
-                 std::pair<bool, bool> bad) {
+long long CountingVarieties(int n, int m, const std::vector<Row>& rows,
+                            const std::vector<Row>& columns,
+                            std::pair<bool, bool> bad) { // pair of flags of existing bad row or bad column
   bool bad_row_exists = bad.first;
   bool bad_col_exists = bad.second;
-  int undef_row = 0;
+  int undef_row_num = 0;
   for (int i = 0; i < n; ++i) {
     if (rows[i].IsUndef()) {
-      ++undef_row;
+      ++undef_row_num;
     }
   }
   int undef_col = 0;
@@ -105,19 +119,19 @@ long long Answer(int n, int m, const Row* rows, const Row* columns,
   bool alter_possibility =
           AlterIsPossible(rows, n) || AlterIsPossible(columns, m);
   if ((!bad_row_exists && bad_col_exists) || m == 1) {
-    return BinPow(2, undef_row);
+    return BinPow(2, undef_row_num);
   }
   if ((bad_row_exists && !bad_col_exists) || n == 1) {
     return BinPow(2, undef_col);
   }
   if (!bad_row_exists && !bad_col_exists) {
-    if (undef_row == n && undef_col == m) {
+    if (undef_row_num == n && undef_col == m) {
       return (BinPow(2, n) + BinPow(2, m) - 2) % kMod;
     }
     if (alter_possibility) {
-      return (BinPow(2, undef_col) + BinPow(2, undef_row) - 1) % kMod;
+      return (BinPow(2, undef_col) + BinPow(2, undef_row_num) - 1) % kMod;
     }
-    return (BinPow(2, undef_col) + BinPow(2, undef_row)) % kMod;
+    return (BinPow(2, undef_col) + BinPow(2, undef_row_num)) % kMod;
   }
   return 0;
 }
@@ -125,8 +139,8 @@ long long Answer(int n, int m, const Row* rows, const Row* columns,
 int main() {
   int n, m;
   std::cin >> n >> m;
-  Row* rows = new Row[n];
-  Row* columns = new Row[m];
+  std::vector<Row> rows(n);
+  std::vector<Row> columns(m);
   bool bad_row_exists = false;
   bool bad_col_exists = false;
   for (int i = 0; i < n; ++i) {
@@ -142,8 +156,6 @@ int main() {
       }
     }
   }
-  std::cout << Answer(n, m, rows, columns,
+  std::cout << CountingVarieties(n, m, rows, columns,
                       std::make_pair(bad_row_exists, bad_col_exists));
-  delete[] rows;
-  delete[] columns;
 }
