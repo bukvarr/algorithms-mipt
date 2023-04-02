@@ -1,0 +1,3 @@
+/home/bukvar/CLionProjects/6_N/cmake-build-debug/CMakeFiles/6_N.dir
+/home/bukvar/CLionProjects/6_N/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/bukvar/CLionProjects/6_N/cmake-build-debug/CMakeFiles/rebuild_cache.dir
