@@ -14,11 +14,11 @@
 
 #include <vector>
 
-void ConstructingDP(const std::string& a, const std::string& b,
+void ConstructDP(const std::string& a, const std::string& b,
                          std::vector<std::vector<std::vector<int>>>& dp,
                          int k) {
-  for (int i = 1; i <= static_cast<int>(b.length()); ++i) {
-    for (int del = 0; del <= k; ++del) {
+  for (int i = 1; i <= static_cast<int>(b.length()); ++i) { //dp хранит максималное количество симолов, совпадающих со строкой б среди первых i элементов
+    for (int del = 0; del <= k; ++del) { // после del удалерий и add удалений
       for (int add = 0; add <= k; ++add) {
         if (add + del > k) {
           continue;
@@ -44,21 +44,21 @@ void ConstructingDP(const std::string& a, const std::string& b,
   }
 }
 
-int FindingMinDiff(const std::string& a, const std::string& b, int k) {
+int FindMinDiff(const std::string& a, const std::string& b, int k) {
   std::vector<std::vector<std::vector<int>>> dp(
           b.length() + 1,
           std::vector<std::vector<int>>(k + 1, std::vector<int>(k + 1, 0)));
-  ConstructingDP(a, b, dp, k);
+  ConstructDP(a, b, dp, k);
   int len_a = static_cast<int>(a.length());
   int len_b = static_cast<int>(b.length());
-  int ans = 0;
+  int min_diff = 0;
   for (int del = 0; del <= k; ++del) {
     int add = len_b - len_a + del;
     if (add >= 0 && k >= del + add) {
-      ans = std::max(ans, dp[len_b][del][add] + k - add - del);
+      min_diff = std::max(min_diff, dp[len_b][del][add] + k - add - del);
     }
   }
-  return ans;
+  return min_diff;
 }
 
 int main() {
@@ -73,5 +73,5 @@ int main() {
     std::cout << -1;
     return 0;
   }
-  std::cout << len_b - std::min(FindingMinDiff(a, b, k), len_b);
+  std::cout << len_b - std::min(FindMinDiff(a, b, k), len_b);
 }
