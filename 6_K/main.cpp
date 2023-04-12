@@ -5,9 +5,9 @@
 void ConstructingDP(std::vector<std::vector<int>>& dp,
                          const std::vector<int>& weight,
                          const std::vector<int>& cost) {
-  size_t n = static_cast<int>(dp.size());
-  size_t m = static_cast<int>(dp[0].size()) - 1;
-  for (size_t j = 0; j < weight[0]; ++j) {
+  size_t n = dp.size();
+  size_t m = dp[0].size() - 1;
+  for (size_t j = 0; j < weight[0]; ++j) { // on each max num of available thing we're updating max cost for each weight
     dp[0][j] = 0;
   }
   for (size_t j = weight[0]; j <= m; ++j) {
@@ -22,10 +22,10 @@ void ConstructingDP(std::vector<std::vector<int>>& dp,
   }
 }
 
-std::vector<int> IndexesGathering(const std::vector<std::vector<int>>& dp,
+std::vector<int> GatheringIndexes(const std::vector<std::vector<int>>& dp,
                                   const std::vector<int>& weight) {
-  size_t n = static_cast<int>(dp.size());
-  size_t m = static_cast<int>(dp[0].size()) - 1;
+  size_t n = dp.size();
+  size_t m = dp[0].size() - 1;
   size_t max_w = 0;
   for (size_t j = 1; j <= m; ++j) {
     if (dp[n - 1][j] > dp[n - 1][max_w]) {
@@ -48,20 +48,26 @@ std::vector<int> IndexesGathering(const std::vector<std::vector<int>>& dp,
   return indexes;
 }
 
+void FindingMissionsPack(size_t n, size_t m, std::vector<int>& weight, std::vector<int>& cost,
+                         std::vector<int>& indexes) {
+  std::vector<std::vector<int>> dp(n, std::vector<int>(m + 1, 0));
+  ConstructingDP(dp, weight, cost);
+  indexes = GatheringIndexes(dp, weight);
+}
+
 int main() {
   size_t n, m;
   std::cin >> n >> m;
   std::vector<int> weight(n);
   std::vector<int> cost(n);
-  for (int i = 0; i < n; ++i) {
+  for (size_t i = 0; i < n; ++i) {
     std::cin >> weight[i];
   }
-  for (int i = 0; i < n; ++i) {
+  for (size_t i = 0; i < n; ++i) {
     std::cin >> cost[i];
   }
-  std::vector<std::vector<int>> dp(n, std::vector<int>(m + 1, 0));
-  ConstructingDP(dp, weight, cost);
-  std::vector<int> indexes = IndexesGathering(dp, weight);
+  std::vector<int> indexes;
+  FindingMissionsPack(n, m, weight, cost, indexes);
   for (size_t i = indexes.size(); i >= 1; --i) {
     std::cout << indexes[i - 1] << '\n';
   }
