@@ -61,7 +61,7 @@ std::vector<int> GatheringIndexes(const std::vector<int>& dp,
   return vect;
 }
 
-void FindingSequence(size_t n, std::vector<long long> nums, std::vector<int>& indexes) {
+void FindingSequence(size_t n, std::vector<long long>& nums, std::vector<int>& indexes) {
   std::vector<int> dp(n, -1); //on each iteration max sequence on first i elements with length = 1, ... , n
   std::vector<size_t> max_pos(n, -1); //max position of element 0 <= i < n
   ConstructingDP(nums, dp, max_pos);
