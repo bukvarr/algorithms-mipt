@@ -25,15 +25,15 @@ long long BinPow(long long t, int pow) {
   return (BinPow(t, pow % 2) * tt) % kMod;
 }
 
-struct Row {
-    int black_odd = -1;
-    int white_odd = -1;
+struct Row { //эта структура хранит четность черных и белых клеток в ряду(строчке/столбце) и в случае, если четность белых == четности черных,
+    int black_odd = -1; //либо же какой-то цвет встречается как на четных, так и на нечетных местах, то ряд называется плохим(bad_cons).
+    int white_odd = -1;//ряд так же может быть неопределен(IsUndef) в случае, если там нет ни черных, ни белых клеток
     bool bad_cons = false;
 
     bool IsUndef() const { return black_odd == -1 && white_odd == -1; }
 };
 
-void Initialization(std::vector<Row>& rows, std::vector<Row>& columns,
+void Initialization(std::vector<Row>& rows, std::vector<Row>& columns, //иницализируем строку i, столбец j с учетом символа
                     int i, int j, char c) {
   if (c == '+') {
     if (rows[i].black_odd == -1 || rows[i].black_odd == j % 2) {
@@ -67,7 +67,7 @@ void Initialization(std::vector<Row>& rows, std::vector<Row>& columns,
   }
 }
 
-bool AlterIsPossible(const std::vector<Row>& rows, int n) {
+bool AlterIsPossible(const std::vector<Row>& rows, int n) { // проверка возможности чередования* по рядам(строкам или столбцам
   int black_odd = -1;
   int white_odd = -1;
   for (int i = 0; i < n; ++i) {
@@ -99,7 +99,7 @@ bool AlterIsPossible(const std::vector<Row>& rows, int n) {
   return !(white_odd == black_odd && white_odd != -1);
 }
 
-long long CountingVarieties(int n, int m, const std::vector<Row>& rows,
+long long CountVarieties(int n, int m, const std::vector<Row>& rows,
                             const std::vector<Row>& columns,
                             std::pair<bool, bool> bad) { // pair of flags of existing bad row or bad column
   bool bad_row_exists = bad.first;
@@ -136,6 +136,25 @@ long long CountingVarieties(int n, int m, const std::vector<Row>& rows,
   return 0;
 }
 
+int FindVarietiesNum(int n, int m, std::vector<std::vector<char>>& input) {
+  std::vector<Row> rows(n);
+  std::vector<Row> columns(m);
+  bool bad_row_exists = false;
+  bool bad_col_exists = false;
+  for (int i = 0; i < n; ++i) {
+    for (int j = 0; j < m; ++j) {
+      Initialization(rows, columns, i, j, input[i][j]);
+      if (rows[i].bad_cons) {
+        bad_row_exists = true;
+      }
+      if (columns[j].bad_cons) {
+        bad_col_exists = true;
+      }
+    }
+  }
+  return CountVarieties(n, m, rows, columns,std::make_pair(bad_row_exists, bad_col_exists));
+}
+
 int main() {
   int n, m;
   std::cin >> n >> m;
@@ -143,10 +162,12 @@ int main() {
   std::vector<Row> columns(m);
   bool bad_row_exists = false;
   bool bad_col_exists = false;
+  std::vector<std::vector<char>> input(n);
   for (int i = 0; i < n; ++i) {
     for (int j = 0; j < m; ++j) {
       char c;
       std::cin >> c;
+      input[i].push_back(c);
       Initialization(rows, columns, i, j, c);
       if (rows[i].bad_cons) {
         bad_row_exists = true;
@@ -156,6 +177,5 @@ int main() {
       }
     }
   }
-  std::cout << CountingVarieties(n, m, rows, columns,
-                      std::make_pair(bad_row_exists, bad_col_exists));
+  std::cout << FindVarietiesNum(n, m, input);
 }
