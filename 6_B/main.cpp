@@ -11,7 +11,7 @@
 void ConstructingDP(const std::vector<long long>& nums, std::vector<int>& dp,
                     std::vector<size_t>& max_pos) {
   dp[0] = 0;
-  max_pos[0] = 0;
+  max_pos[0] = 0; //комментарий в функции FindingSequence
   size_t n = nums.size();
   for (size_t i = 1; i < n; ++i) {
     size_t l = 0;
@@ -61,17 +61,24 @@ std::vector<int> GatheringIndexes(const std::vector<int>& dp,
   return vect;
 }
 
+void FindingSequence(size_t n, std::vector<long long> nums, std::vector<int>& indexes) {
+  std::vector<int> dp(n, -1); //on each iteration max sequence on first i elements with length = 1, ... , n
+  std::vector<size_t> max_pos(n, -1); //max position of element 0 <= i < n
+  ConstructingDP(nums, dp, max_pos);
+  indexes = GatheringIndexes(dp, max_pos);
+}
+
+
+
 int main() {
   size_t n;
   std::cin >> n;
   std::vector<long long> nums(n);
-  std::vector<int> dp(n, -1); //on each iteration max sequence on first i elements with length = 1, ... , n
-  std::vector<size_t> max_pos(n, -1); //max position of element 0 <= i < n
   for (size_t i = 0; i < n; ++i) {
     std::cin >> nums[i];
   }
-  ConstructingDP(nums, dp, max_pos);
-  std::vector<int> indexes = GatheringIndexes(dp, max_pos);
+  std::vector<int> indexes;
+  FindingSequence(n, nums, indexes);
   std::cout << indexes.size() << '\n';
   for (int i = indexes.size() - 1; i >= 0; --i) {
     std::cout << indexes[i] << " ";
