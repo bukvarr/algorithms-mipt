@@ -156,26 +156,17 @@ int FindVarietiesNum(int n, int m, std::vector<std::vector<char>>& input) {
 }
 
 int main() {
-  int n, m;
-  std::cin >> n >> m;
-  std::vector<Row> rows(n);
-  std::vector<Row> columns(m);
-  bool bad_row_exists = false;
-  bool bad_col_exists = false;
-  std::vector<std::vector<char>> input(n);
-  for (int i = 0; i < n; ++i) {
-    for (int j = 0; j < m; ++j) {
-      char c;
-      std::cin >> c;
-      input[i].push_back(c);
-      Initialization(rows, columns, i, j, c);
-      if (rows[i].bad_cons) {
-        bad_row_exists = true;
-      }
-      if (columns[j].bad_cons) {
-        bad_col_exists = true;
+    int n, m;
+    std::cin >> n >> m;
+    std::vector<Row> rows(n);
+    std::vector<Row> columns(m);
+    std::vector<std::vector<char>> input(n);
+    for (int i = 0; i < n; ++i) {
+      for (int j = 0; j < m; ++j) {
+        char c;
+        std::cin >> c;
+        input[i].push_back(c);
       }
     }
+    std::cout << FindVarietiesNum(n, m, input);
   }
-  std::cout << FindVarietiesNum(n, m, input);
-}
