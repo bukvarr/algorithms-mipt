@@ -3,8 +3,6 @@
 #include <set>
 #include <vector>
 
-const int kBlockLen = 3;
-
 const int kMaxDist = 2009000999;
 
 struct Edge {
@@ -97,15 +95,18 @@ class Graph {
   }
 };
 
-void AddEdges(Graph& gg, const std::vector<int>& inp) {
-  size_t b_len = kBlockLen;
-  for (size_t i = 0; i < inp.size() / b_len; ++i) {
-    int v1 = inp[i * b_len];
-    int v2 = inp[i * b_len + 1];
-    long long len = static_cast<long long>(inp[i * b_len + 2]);
+std::istream& operator>>(std::istream& in, Graph& gg) {
+  int mm;
+  in >> mm;
+  for (int i = 0; i < mm; ++i) {
+    int v1;
+    int v2;
+    int len;
+    in >> v1 >> v2 >> len;
     gg.AddEdge(v1, Edge(v2, len));
     gg.AddEdge(v2, Edge(v1, len));
   }
+  return in;
 }
 
 std::string FindDistsToStart(Graph& gg, int start_v) {
@@ -128,23 +129,16 @@ std::string FindDistsToStart(Graph& gg, int start_v) {
   return ss;
 }
 
-void Main1() {
+int main() {
   int kk;
-  int nn;
-  int mm;
   std::cin >> kk;
   for (int i = 0; i < kk; ++i) {
-    std::cin >> nn >> mm;
-    Graph gg(nn);
-    std::vector<int> inp(mm * kBlockLen);
-    for (int j = 0; j < mm * kBlockLen; ++j) {
-      std::cin >> inp[j];
-    }
-    AddEdges(gg, inp);
+    int v_num;
+    std::cin >> v_num;
+    Graph gg(v_num);
+    std::cin >> gg;
     int start_v;
     std::cin >> start_v;
     std::cout << FindDistsToStart(gg, start_v) << '\n';
   }
 }
-
-int main() { Main1(); }
