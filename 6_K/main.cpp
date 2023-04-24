@@ -7,7 +7,7 @@ void ConstructingDP(std::vector<std::vector<int>>& dp,
                          const std::vector<int>& cost) {
   size_t n = dp.size();
   size_t m = dp[0].size() - 1;
-  for (size_t j = 0; j < weight[0]; ++j) { // on each max num of available thing we're updating max cost for each weight
+  for (size_t j = 0; j < static_cast<size_t>(weight[0]); ++j) { // on each max num of available thing we're updating max cost for each weight
     dp[0][j] = 0;
   }
   for (size_t j = weight[0]; j <= m; ++j) {
@@ -15,7 +15,7 @@ void ConstructingDP(std::vector<std::vector<int>>& dp,
   }
   for (size_t i = 1; i < n; ++i) {
     for (size_t j = 0; j <= m; ++j) {
-      dp[i][j] = (j >= weight[i] ? std::max(dp[i - 1][j - weight[i]] + cost[i], //updating max cost
+      dp[i][j] = (j >= static_cast<size_t>(weight[i]) ? std::max(dp[i - 1][j - weight[i]] + cost[i], //updating max cost
                                             dp[i - 1][j])
                                  : dp[i - 1][j]);
     }
@@ -33,7 +33,7 @@ std::vector<int> GatheringIndexes(const std::vector<std::vector<int>>& dp,
     }
   }
   std::vector<int> indexes;
-  for (size_t i = n - 1; i >= 0; --i) {
+  for (size_t i = n - 1; ; --i) {
     if (i == 0) {
       if (dp[0][max_w] != 0) {
         indexes.push_back(1);
