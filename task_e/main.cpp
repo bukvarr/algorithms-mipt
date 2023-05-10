@@ -13,14 +13,8 @@ struct Edge {
 };
 
 class Graph {
- private:
-  int vert_num_;
-  std::vector<std::vector<Edge>> edge_lists_;
-
  public:
   Graph(int n) : vert_num_(n), edge_lists_(std::vector<std::vector<Edge>>(n)) {}
-
-  Graph() = default;
 
   void AddEdge(int v1, Edge e) { edge_lists_[v1].push_back(e); }
 
@@ -31,6 +25,10 @@ class Graph {
   }
 
   int VerticesNum() const { return vert_num_; }
+
+ private:
+    int vert_num_;
+    std::vector<std::vector<Edge>> edge_lists_;
 };
 
 void DFS(const Graph& g, int v, std::vector<int>& time_in,
@@ -64,15 +62,17 @@ void DFS(const Graph& g, int v, std::vector<int>& time_in,
   }
 }
 
-int FindBridges(const Graph& g, std::string& bridges_nums, int m,
+std::vector<size_t >&& FindBridges(const Graph& g,
                 std::vector<std::pair<int, int>>& edges_order,
                 std::multiset<std::pair<int, int>>& edges) {
   int n = g.VerticesNum();
+  size_t m = edges.size();
   std::vector<int> time_in(n);
   std::vector<int> parent(n, -1);
   std::vector<int> ret(n);
   std::vector<bool> visited(n, false);
   std::vector<bool> bridges(m, false);
+  std::vector<size_t> bridges_nums;
   for (int i = 0; i < n; ++i) {
     DFS(g, i, time_in, visited, ret, parent, bridges);
   }
@@ -80,11 +80,10 @@ int FindBridges(const Graph& g, std::string& bridges_nums, int m,
   int count = 0;
   for (it = bridges.cbegin(); it != bridges.cend(); ++it) {
     if (*it && edges.count(edges_order[it - bridges.cbegin()]) == 1) {
-      ++count;
-      bridges_nums += std::to_string(it - bridges.cbegin() + 1) + " ";
+      bridges_nums.push_back(it - bridges.cbegin() + 1);
     }
   }
-  return count;
+  return std::move(bridges_nums);
 }
 
 
@@ -106,7 +105,10 @@ int main() {
     g.AddEdge(v1 - 1, Edge(v2 - 1, i));
     g.AddEdge(v2 - 1, Edge(v1 - 1, i));
   }
-  std::string bridges_nums;
-  int count = FindBridges(g, bridges_nums, m, edges_order, edges);
-  std::cout << count << '\n' << bridges_nums;
+  std::vector<size_t> bridges_nums;
+  bridges_nums = std::move(FindBridges(g, edges_order, edges));
+  std::cout << bridges_nums.size() << '\n';
+  for (auto num : bridges_nums) {
+    std::cout << num << " ";
+  }
 }
