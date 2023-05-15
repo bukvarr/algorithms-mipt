@@ -14,7 +14,7 @@ struct Edge {
 
 class Graph {
  public:
-  Graph(int n) : vert_num_(n), edge_lists_(std::vector<std::vector<Edge>>(n)) {}
+  explicit Graph(int n) : vert_num_(n), edge_lists_(std::vector<std::vector<Edge>>(n)) {}
 
   void AddEdge(int v1, Edge e) { edge_lists_[v1].push_back(e); }
 
@@ -27,8 +27,8 @@ class Graph {
   int VerticesNum() const { return vert_num_; }
 
  private:
-    int vert_num_;
-    std::vector<std::vector<Edge>> edge_lists_;
+  int vert_num_;
+  std::vector<std::vector<Edge>> edge_lists_;
 };
 
 void DFS(const Graph& g, int v, std::vector<int>& time_in,
@@ -62,9 +62,9 @@ void DFS(const Graph& g, int v, std::vector<int>& time_in,
   }
 }
 
-std::vector<size_t >&& FindBridges(const Graph& g,
-                std::vector<std::pair<int, int>>& edges_order,
-                std::multiset<std::pair<int, int>>& edges) {
+std::vector<size_t> FindBridges(const Graph& g,
+                                std::vector<std::pair<int, int>>& edges_order,
+                                std::multiset<std::pair<int, int>>& edges) {
   int n = g.VerticesNum();
   size_t m = edges.size();
   std::vector<int> time_in(n);
@@ -77,13 +77,12 @@ std::vector<size_t >&& FindBridges(const Graph& g,
     DFS(g, i, time_in, visited, ret, parent, bridges);
   }
   std::vector<bool>::const_iterator it;
-  int count = 0;
   for (it = bridges.cbegin(); it != bridges.cend(); ++it) {
     if (*it && edges.count(edges_order[it - bridges.cbegin()]) == 1) {
       bridges_nums.push_back(it - bridges.cbegin() + 1);
     }
   }
-  return std::move(bridges_nums);
+  return bridges_nums;
 }
 
 
