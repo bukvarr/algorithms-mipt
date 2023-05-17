@@ -31,14 +31,14 @@ struct Edge {
     Edge(int v1, int v2, double cap, double f) : v1(v1), v2(v2), cap(cap), f(f) {}
 };
 
-struct VectorsForDinic {
-std::vector<int> d, ptr;
+struct UsedContainers {
+std::vector<int> min_path, ptr; //min_path - shortest path from start to v
 std::vector<bool> visited;
 
-VectorsForDinic(int n) : d(n), ptr(n), visited(n, false) {}
+UsedContainers(int n) : min_path(n), ptr(n), visited(n, false) {}
 };
 
-using VFD = VectorsForDinic;
+using UC = UsedContainers;
 
 class Graph {
  public:
@@ -74,42 +74,42 @@ class Graph {
   std::vector<Edge> edges;
 };
 
-void SimpleDFS(Graph& gr, int v, VFD& vfd) {
-  vfd.visited[v] = true;
+void SimpleDFS(Graph& gr, int v, UC& uc) {
+  uc.visited[v] = true;
   for (auto id  : gr.GetEdgesNums(v)) {
-    if (gr.GetEdge(id).f < gr.GetEdge(id).cap && !vfd.visited[gr.GetEdge(id).v2]) {
-      SimpleDFS(gr, gr.GetEdge(id).v2, vfd);
+    if (gr.GetEdge(id).f < gr.GetEdge(id).cap && !uc.visited[gr.GetEdge(id).v2]) {
+      SimpleDFS(gr, gr.GetEdge(id).v2, uc);
     }
   }
 }
 
-double DFS(Graph& gr, int u, double f, VFD& vfd) {
+double DFS(Graph& gr, int u, double f, UC& uc) {
   if (f == 0) {
     return 0;
   }
   if (u == dest) {
     return f;
   }
-  while (vfd.ptr[u] < gr.GetEdgesNums(u).size()) {
-    int id = gr.GetEdgesNums(u)[vfd.ptr[u]];
+  while (uc.ptr[u] < gr.GetEdgesNums(u).size()) {
+    int id = gr.GetEdgesNums(u)[uc.ptr[u]];
     int v = gr.GetEdge(id).v2;
-    if (vfd.d[v] == vfd.d[u] + 1) {
-      double curr_f = DFS(gr, v, std::min(f, gr.GetEdge(id).cap - gr.GetEdge(id).f), vfd);
+    if (uc.min_path[v] == uc.min_path[u] + 1) {
+      double curr_f = DFS(gr, v, std::min(f, gr.GetEdge(id).cap - gr.GetEdge(id).f), uc);
       if (curr_f != 0) {
         gr.GetEdge(id).f += curr_f;
         gr.GetEdge(id ^ 1).f -= curr_f;
         return curr_f;
       }
     }
-    ++vfd.ptr[u];
+    ++uc.ptr[u];
   }
   return 0;
 }
 
-int BFS(Graph& gr, VFD& vfd) {
+int BFS(Graph& gr, UC& uc) {
   int n = gr.VerticesNum();
-  vfd.d = std::vector<int> (n, INF);
-  vfd.d[start] = 0;
+  uc.min_path = std::vector<int> (n, INF);
+  uc.min_path[start] = 0;
   std::queue<int> queue;
   queue.push(start);
   while (!queue.empty()) {
@@ -118,37 +118,37 @@ int BFS(Graph& gr, VFD& vfd) {
     for (int i = 0; i < gr.GetEdgesNums(u).size(); ++i) {
       int id = gr.GetEdgesNums(u)[i];
       int v = gr.GetEdge(id).v2;
-      if (vfd.d[v] == INF && gr.GetEdge(id).f < gr.GetEdge(id).cap) {
-        vfd.d[v] = vfd.d[u] + 1;
+      if (uc.min_path[v] == INF && gr.GetEdge(id).f < gr.GetEdge(id).cap) {
+        uc.min_path[v] = uc.min_path[u] + 1;
         queue.push(v);
       }
     }
   }
-  return vfd.d[dest];
+  return uc.min_path[dest];
 }
 
-double Dinic(Graph& gr, VFD& vfd) {
+double FindMaxFlow(Graph& gr, UC& uc) {
   double f = 0;
   int n = gr.VerticesNum();
-  while (BFS(gr, vfd) != INF) {
-    vfd.ptr.assign(n, 0);
-    double curr_f = DFS(gr, start, INF, vfd);
+  while (BFS(gr, uc) != INF) {
+    uc.ptr.assign(n, 0);
+    double curr_f = DFS(gr, start, INF, uc);
     while (curr_f) {
       f += curr_f;
-      curr_f = DFS(gr, start, INF, vfd);
+      curr_f = DFS(gr, start, INF, uc);
     }
   }
   return f;
 }
 
-double FindCut(Graph& gr, std::unordered_set<int>& cut, VFD& vfd) {
-  double min_cut_f = Dinic(gr, vfd);
+double FindCut(Graph& gr, std::unordered_set<int>& cut, UC& uc) {
+  double min_cut_f = FindMaxFlow(gr, uc);
   int m = gr.EdgesNum();
-  SimpleDFS(gr, start, vfd);
+  SimpleDFS(gr, start, uc);
   for (int i = 0; i < 2 * m; i += 2) {
     int v1 = gr.GetEdge(i).v1;
     int v2 = gr.GetEdge(i).v2;
-    if ((vfd.visited[v1] && !vfd.visited[v2]) || (!vfd.visited[v1] && vfd.visited[v2])) {
+    if ((uc.visited[v1] && !uc.visited[v2]) || (!uc.visited[v1] && uc.visited[v2])) {
       cut.insert(v1);
       cut.insert(v2);
     }
@@ -188,7 +188,7 @@ std::unordered_set<int> FindKernel(int n, std::vector<SimpleEdge>&& input_edges,
   double l = 0, r = m;
   for (int j = 0; j < kIterationNum; j++) {
     double mid = (l + r) / 2;
-    VFD vfd(n + 2);
+    UC uc(n + 2);
     Graph gr(n + 2, m + 2 * n);
     for (int i = 0; i < m; ++i) {
       gr.AddEdges(input_edges[i].v1, input_edges[i].v2, 1);
@@ -198,7 +198,7 @@ std::unordered_set<int> FindKernel(int n, std::vector<SimpleEdge>&& input_edges,
       gr.AddEdge(start, i, mid * 2);
       gr.AddEdge(i, dest, deg[i]);
     }
-    if (Dinic(gr, vfd) < (double)(2 * m) - double(1)/INF) {
+    if (FindMaxFlow(gr, uc) < (double)(2 * m) - double(1)/INF) {
       l = mid;
     } else {
       r = mid;
