@@ -12,16 +12,10 @@ struct Edge {
 };
 
 class Graph {
- private:
-  int vert_num_;
-  int edge_num_;
-  std::vector<Edge> edge_list_;
-
  public:
-  int loop_found = -1;
   Graph(int n, int m) : vert_num_(n), edge_num_(m) {}
 
-  Graph() = default;
+  Graph() = delete;
 
   void AddEdge(Edge ee) { edge_list_.push_back(ee); }
 
@@ -30,6 +24,11 @@ class Graph {
   int VerticesNum() const { return vert_num_; }
 
   int EdgesNum() const { return edge_num_; }
+
+ private:
+  int vert_num_;
+  int edge_num_;
+  std::vector<Edge> edge_list_;
 };
 
 std::istream& operator>>(std::istream& in, Graph& gg) {
