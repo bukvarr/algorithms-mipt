@@ -4,24 +4,18 @@
 #include <iostream>
 #include <vector>
 #include <unordered_set>
-
-int Find2Pow(int x) {
-  int i = 1;
-  int pow = 0;
-  while (i <= x) {
-    i *= 2;
-    ++pow;
-  }
-  return pow + 1;
-}
+//l и r отвечают за доли (правая/левая) +/- за то, были ли они посещены во время DFS
+// из всех ненасыщенных вершин левой доли
+struct VerticesSets {
+    std::vector<int> l_minus;
+    std::vector<int> l_plus;
+    std::vector<int> r_minus;
+    std::vector<int> r_plus;
+};
 
 class Graph {
- private:
-  int l;
-  int r;
-  std::vector<std::unordered_set<int>> edge_lists_;
-
  public:
+
   Graph(int l, int r) : l(l), r(r), edge_lists_(std::vector<std::unordered_set<int>>(l + r)) {}
 
   Graph() = default;
@@ -37,6 +31,12 @@ class Graph {
   int LVerticesNum() const { return l; }
 
   int RVerticesNum() const { return r; }
+
+ private:
+
+  int l;
+  int r;
+  std::vector<std::unordered_set<int>> edge_lists_;
 };
 
 std::istream& operator>>(std::istream& in, Graph& gg) {
@@ -54,7 +54,7 @@ std::istream& operator>>(std::istream& in, Graph& gg) {
   return in;
 }
 
-bool DFS(Graph& g, int v, std::vector<bool>& used) {
+bool DFS(const Graph& g, int v, std::vector<bool>& used) {
   if (used[v]) {
     return false;
   }
@@ -67,7 +67,7 @@ bool DFS(Graph& g, int v, std::vector<bool>& used) {
   return false;
 }
 
-void OrientEdges(Graph& g, std::vector<int>& match) {
+void OrientEdges(Graph& g, const std::vector<int>& match) {
   for (size_t i = 0; i < match.size(); ++i) {
     if (match[i] != -1) {
       g.AddEdge(i + g.LVerticesNum(), match[i]);
@@ -76,9 +76,7 @@ void OrientEdges(Graph& g, std::vector<int>& match) {
   }
 }
 
-void ConstructSets(Graph&g, std::vector<int>& match, std::vector<int>& l_minus,
-                   std::vector<int>& l_plus, std::vector<int>& r_minus, std::vector<int>& r_plus) {
-  OrientEdges(g, match);
+void ConstructVerticesSets(const Graph&g, const std::vector<int>& match, VerticesSets& vsets) {
   int l = g.LVerticesNum();
   int r = g.RVerticesNum();
   std::vector<bool> visited(l + r, false);
@@ -97,15 +95,15 @@ void ConstructSets(Graph&g, std::vector<int>& match, std::vector<int>& l_minus,
   for (size_t i = 0; i < visited.size(); ++i) {
     if (i < l) {
       if (visited[i]) {
-        l_plus.push_back(i);
+        vsets.l_plus.push_back(i);
       } else {
-        l_minus.push_back(i);
+        vsets.l_minus.push_back(i);
       }
     } else {
       if (visited[i]) {
-        r_plus.push_back(i);
+        vsets.r_plus.push_back(i);
       } else {
-        r_minus.push_back(i);
+        vsets.r_minus.push_back(i);
       }
     }
   }
@@ -124,19 +122,17 @@ int main() {
       match[v - 1] = i;
     }
   }
-  std::vector<int> l_minus;
-  std::vector<int> l_plus;
-  std::vector<int> r_minus;
-  std::vector<int> r_plus;
-  ConstructSets(g, match, l_minus, l_plus, r_minus, r_plus);
-  std::cout << l_minus.size() + r_plus.size() << '\n';
-  std::cout << l_minus.size() << " ";
-  for (size_t i = 0; i < l_minus.size(); ++i) {
-    std::cout << l_minus[i] + 1 << " ";
+  OrientEdges(g, match);
+  VerticesSets vsets;
+  ConstructVerticesSets(g, match, vsets);
+  std::cout << vsets.l_minus.size() + vsets.r_plus.size() << '\n';
+  std::cout << vsets.l_minus.size() << " ";
+  for (size_t i = 0; i < vsets.l_minus.size(); ++i) {
+    std::cout << vsets.l_minus[i] + 1 << " ";
   }
-  std::cout << '\n' << r_plus.size() << " ";
-  for (size_t i = 0; i < r_plus.size(); ++i) {
-    std::cout << r_plus[i] - l + 1 << " ";
+  std::cout << '\n' << vsets.r_plus.size() << " ";
+  for (size_t i = 0; i < vsets.r_plus.size(); ++i) {
+    std::cout << vsets.r_plus[i] - l + 1 << " ";
   }
   return 0;
 }
